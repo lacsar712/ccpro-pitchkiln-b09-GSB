@@ -1,7 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.db.models import Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -9,28 +8,21 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .forms import OpenCookRunForm, PhaseChangeForm, ResinLotForm, SoftPointProbeForm
-from .models import CookRun, FireHearth, ResinLot
+from .models import FireHearth, ResinLot
 from .services.floor_rules import change_hearth_phase
+from .services.queries import board_hearths, origin_recon
 
 
 def _wants_htmx(request):
     return request.headers.get("HX-Request") == "true"
 
 
-def _hearths_for_board():
-    return FireHearth.objects.prefetch_related(
-        Prefetch(
-            "runs",
-            queryset=CookRun.objects.filter(closedAt__isnull=True)
-            .select_related("resinLot")
-            .prefetch_related("probes"),
-            to_attr="open_runs_cache",
-        )
-    ).order_by("lane", "tag")
+def _only_open_requested(request):
+    return request.GET.get("open") in ("1", "true", "on")
 
 
-def _board_context():
-    hearths = list(_hearths_for_board())
+def _board_context(only_open=False):
+    hearths = list(board_hearths(only_open=only_open))
     lanes = {}
     for h in hearths:
         lanes.setdefault(h.lane, []).append(h)
@@ -42,6 +34,7 @@ def _board_context():
         "hearths": hearths,
         "lanes": sorted(lanes.items()),
         "phase_legend": phase_legend,
+        "only_open": only_open,
     }
 
 
@@ -62,7 +55,7 @@ def _drawer_context(hearth):
 
 @login_required
 def home(request):
-    ctx = _board_context()
+    ctx = _board_context(only_open=_only_open_requested(request))
     drawer_pk = request.GET.get("hearth")
     if drawer_pk:
         try:
@@ -78,7 +71,8 @@ def home(request):
 
 @login_required
 def floor_grid_partial(request):
-    html = render_to_string("floor/_grid.html", _board_context(), request=request)
+    ctx = _board_context(only_open=_only_open_requested(request))
+    html = render_to_string("floor/_grid.html", ctx, request=request)
     return HttpResponse(html)
 
 
@@ -207,5 +201,18 @@ def resin_lot_feed(request):
             }
         )
 
-    lots = ResinLot.objects.all()[:40]
-    return render(request, "resin/feed.html", {"lots": lots, "form": form})
+    origin = request.GET.get("origin", "").strip()
+    ctx = {
+        "form": form,
+        "origin": origin,
+        "origins": (
+            ResinLot.objects.order_by("originPlace")
+            .values_list("originPlace", flat=True)
+            .distinct()
+        ),
+        "recon": origin_recon(origin),
+    }
+    # 整页与 HTMX 局部共用同一上下文与同一结果片段，口径一致。
+    if _wants_htmx(request):
+        return render(request, "resin/_feed_results.html", ctx)
+    return render(request, "resin/feed.html", ctx)

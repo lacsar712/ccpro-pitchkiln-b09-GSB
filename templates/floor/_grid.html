@@ -1,6 +1,6 @@
 <div id="floor-grid"
      class="floor-grid"
-     hx-get="{% url 'floor_grid' %}"
+     hx-get="{% url 'floor_grid' %}{% if only_open %}?open=1{% endif %}"
      hx-trigger="floor-refresh from:body"
      hx-swap="outerHTML">
   {% for lane, tiles in lanes %}
@@ -30,6 +30,6 @@
     </div>
   </div>
   {% empty %}
-  <p class="board-empty">暂无灶台，请先种子数据</p>
+  <p class="board-empty">{% if only_open %}当前没有挂未收灶值守的灶{% else %}暂无灶台，请先种子数据{% endif %}</p>
   {% endfor %}
 </div>

@@ -608,6 +608,128 @@ body {
 
 .back-link:hover { text-decoration: underline; }
 
+/* —— board filter —— */
+.board-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--steel);
+}
+
+.board-filter .check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.board-filter input[type="checkbox"] { accent-color: var(--ember); }
+
+/* —— resin feed: filter + recon —— */
+.feed-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lot-filter {
+  background: var(--soot-2);
+  border: 1px solid #3f342a;
+  padding: 1rem;
+}
+
+.lot-filter h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.lot-results {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.recon-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  align-items: baseline;
+  border: 1px solid #3f342a;
+  border-left: 3px solid var(--ember);
+  background: #161310;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.8rem;
+  color: var(--steel);
+}
+
+.recon-title { color: var(--cinder); font-weight: 700; }
+.recon-item b { color: var(--ink); font-size: 0.95rem; }
+.recon-item .diff { font-style: normal; font-weight: 700; }
+.recon-item .diff-ok { color: var(--ok); }
+.recon-item .diff-bad { color: var(--danger); }
+
+.recon-section h2 {
+  margin: 0 0 0.55rem;
+  font-size: 0.88rem;
+  color: var(--cinder);
+  letter-spacing: 0.06em;
+}
+
+.lot-empty,
+.run-empty,
+.chip-empty {
+  list-style: none;
+  color: var(--steel);
+  font-size: 0.82rem;
+}
+
+.run-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.run-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  align-items: baseline;
+  background: #161310;
+  border: 1px solid #2e261f;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.run-hearth { font-weight: 700; }
+.run-lot { color: var(--cinder); }
+.run-meta { color: var(--steel); font-size: 0.75rem; }
+
+.hearth-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.hearth-chip {
+  border: 1px solid #3f342a;
+  border-left-width: 4px;
+  background: var(--soot-2);
+  padding: 0.35rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.hearth-chip.phase-cold { border-left-color: var(--cold); }
+.hearth-chip.phase-charging { border-left-color: var(--charging); }
+.hearth-chip.phase-ramping { border-left-color: var(--ramping); }
+.hearth-chip.phase-holding { border-left-color: var(--holding); }
+.hearth-chip.phase-drawing { border-left-color: var(--drawing); }
+
 @media (max-width: 900px) {
   .ember-gate { grid-template-columns: 1fr; }
   .floor-grid { margin-right: 0; }

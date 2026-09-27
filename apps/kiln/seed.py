@@ -21,6 +21,7 @@ def ensure_seed_data():
 
     now = timezone.now()
 
+    # 两个产地：松脂坳东沟 / 桐油坑北坡，每地都有批、都有未收灶值守。
     lot_a = ResinLot.objects.create(
         lotCode="脂-松脂坳-2409A",
         originPlace="松脂坳东沟",
@@ -35,9 +36,15 @@ def ensure_seed_data():
     )
     lot_c = ResinLot.objects.create(
         lotCode="脂-松脂坳-2409C",
-        originPlace="松脂坳西岔",
+        originPlace="松脂坳东沟",
         arrivalKg=Decimal("980.00"),
         receivedAt=now - timezone.timedelta(hours=10),
+    )
+    ResinLot.objects.create(
+        lotCode="脂-桐油坑-2409D",
+        originPlace="桐油坑北坡",
+        arrivalKg=Decimal("760.00"),
+        receivedAt=now - timezone.timedelta(hours=3),
     )
 
     h1 = FireHearth.objects.create(

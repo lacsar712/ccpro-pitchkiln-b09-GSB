@@ -1,0 +1,56 @@
+<div id="lot-results" class="lot-results">
+  <section class="recon-strip" aria-label="三路对照">
+    <span class="recon-title">三路对照 · {% if origin %}产地「{{ origin }}」{% else %}全部产地{% endif %}</span>
+    <span class="recon-item">批 <b class="mono">{{ recon.lot_count }}</b> 张 / 卡 {{ recon.lots|length }} 行 ·
+      差 <i class="mono diff {% if recon.lot_diff == 0 %}diff-ok{% else %}diff-bad{% endif %}">{{ recon.lot_diff }}</i></span>
+    <span class="recon-item">未收灶值守 <b class="mono">{{ recon.run_count }}</b> 条 / 条 {{ recon.runs|length }} 行 ·
+      差 <i class="mono diff {% if recon.run_diff == 0 %}diff-ok{% else %}diff-bad{% endif %}">{{ recon.run_diff }}</i></span>
+    <span class="recon-item">涉及灶 <b class="mono">{{ recon.hearth_count }}</b> 台(去重) / 瓦 {{ recon.hearths|length }} 行 ·
+      差 <i class="mono diff {% if recon.hearth_diff == 0 %}diff-ok{% else %}diff-bad{% endif %}">{{ recon.hearth_diff }}</i></span>
+  </section>
+
+  <section class="recon-section">
+    <h2>来脂批卡</h2>
+    <ol class="lot-feed">
+      {% for lot in recon.lots %}
+      <li class="lot-card">
+        <div class="lot-code mono">{{ lot.lotCode }}</div>
+        <div class="lot-place">{{ lot.originPlace }}</div>
+        <div class="lot-meta">
+          <span class="mono">{{ lot.arrivalKg }} kg</span>
+          <span>{{ lot.receivedAt|date:"Y-m-d H:i" }}</span>
+        </div>
+      </li>
+      {% empty %}
+      <li class="lot-empty">该产地无来脂批</li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="recon-section">
+    <h2>未收灶值守</h2>
+    <ol class="run-feed">
+      {% for run in recon.runs %}
+      <li class="run-row">
+        <span class="run-hearth">过道{{ run.hearth.lane }} · {{ run.hearth.tag }}</span>
+        <span class="run-lot mono">{{ run.resinLot.lotCode }}</span>
+        <span class="run-meta mono">开灶 {{ run.openedAt|date:"Y-m-d H:i" }}</span>
+        <span class="run-meta mono">目标 {{ run.targetSoftPointC }}℃</span>
+      </li>
+      {% empty %}
+      <li class="run-empty">这些批下无未收灶值守</li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="recon-section">
+    <h2>涉及灶台（去重）</h2>
+    <div class="hearth-chips">
+      {% for h in recon.hearths %}
+      <span class="hearth-chip phase-{{ h.phase }}">过道{{ h.lane }} · {{ h.tag }}</span>
+      {% empty %}
+      <span class="chip-empty">无涉及灶台</span>
+      {% endfor %}
+    </div>
+  </section>
+</div>
