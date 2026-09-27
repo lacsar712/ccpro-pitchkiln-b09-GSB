@@ -1,6 +1,6 @@
 <div id="floor-grid"
      class="floor-grid"
-     hx-get="{% url 'floor_grid' %}"
+     hx-get="{% url 'floor_grid' %}?duty={{ duty }}"
      hx-trigger="floor-refresh from:body"
      hx-swap="outerHTML">
   {% for lane, tiles in lanes %}
@@ -30,6 +30,6 @@
     </div>
   </div>
   {% empty %}
-  <p class="board-empty">暂无灶台，请先种子数据</p>
+  <p class="board-empty">当前值守过滤下暂无灶台</p>
   {% endfor %}
 </div>

@@ -21,21 +21,22 @@ def ensure_seed_data():
 
     now = timezone.now()
 
+    # 两个产地：松脂坳 / 桐油坑，每地既有来脂批也有未收灶值守
     lot_a = ResinLot.objects.create(
         lotCode="脂-松脂坳-2409A",
-        originPlace="松脂坳东沟",
+        originPlace="松脂坳",
         arrivalKg=Decimal("1860.00"),
         receivedAt=now - timezone.timedelta(days=2),
     )
     lot_b = ResinLot.objects.create(
         lotCode="脂-桐油坑-2409B",
-        originPlace="桐油坑北坡",
+        originPlace="桐油坑",
         arrivalKg=Decimal("1420.50"),
         receivedAt=now - timezone.timedelta(days=1, hours=6),
     )
     lot_c = ResinLot.objects.create(
         lotCode="脂-松脂坳-2409C",
-        originPlace="松脂坳西岔",
+        originPlace="松脂坳",
         arrivalKg=Decimal("980.00"),
         receivedAt=now - timezone.timedelta(hours=10),
     )
@@ -58,7 +59,7 @@ def ensure_seed_data():
         resinGrade="特级脂",
         phase=FireHearth.PHASE_DRAWING,
     )
-    FireHearth.objects.create(
+    h4 = FireHearth.objects.create(
         lane=2,
         tag="坑火-西二",
         resinGrade="二级脂",
@@ -131,4 +132,13 @@ def ensure_seed_data():
         openedAt=now - timezone.timedelta(minutes=40),
         closedAt=None,
         targetSoftPointC=Decimal("87.00"),
+    )
+
+    # 已收灶的历史值守：三路对照与值守过滤只算未收灶，此条不应被计入
+    CookRun.objects.create(
+        hearth=h4,
+        resinLot=lot_b,
+        openedAt=now - timezone.timedelta(days=3),
+        closedAt=now - timezone.timedelta(days=2, hours=20),
+        targetSoftPointC=Decimal("85.00"),
     )

@@ -4,10 +4,26 @@
 <section class="feed-head">
   <div>
     <h1>来脂批</h1>
-    <p class="board-sub">到货时间线 · 非宽表台账</p>
+    <p class="board-sub">到货时间线 · 产地精确筛 · 三路对照</p>
   </div>
   <a class="back-link" href="{% url 'home' %}">← 回值守看板</a>
 </section>
+
+<form class="origin-filter" method="get" action="{% url 'resin_lot_feed' %}">
+  <label for="origin-filter">产地精确筛</label>
+  <select id="origin-filter" name="origin" class="field"
+          hx-get="{% url 'resin_lot_feed' %}"
+          hx-trigger="change"
+          hx-target="#lot-results"
+          hx-swap="outerHTML"
+          hx-push-url="true">
+    <option value="">全部产地</option>
+    {% for o in origin_options %}
+    <option value="{{ o }}" {% if o == origin %}selected{% endif %}>{{ o }}</option>
+    {% endfor %}
+  </select>
+  <noscript><button type="submit" class="btn-ghost">筛选</button></noscript>
+</form>
 
 <div class="feed-layout">
   <form method="post" class="lot-intake stack-form">
@@ -17,19 +33,6 @@
     <button type="submit" class="btn-ember">写入来脂批</button>
   </form>
 
-  <ol class="lot-feed">
-    {% for lot in lots %}
-    <li class="lot-card">
-      <div class="lot-code mono">{{ lot.lotCode }}</div>
-      <div class="lot-place">{{ lot.originPlace }}</div>
-      <div class="lot-meta">
-        <span class="mono">{{ lot.arrivalKg }} kg</span>
-        <span>{{ lot.receivedAt|date:"Y-m-d H:i" }}</span>
-      </div>
-    </li>
-    {% empty %}
-    <li class="lot-card empty">暂无来脂批</li>
-    {% endfor %}
-  </ol>
+  {% include "resin/_feed_results.html" %}
 </div>
 {% endblock %}

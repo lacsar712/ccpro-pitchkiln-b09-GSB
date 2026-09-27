@@ -6,6 +6,20 @@
     <h1>灶台值守看板</h1>
     <p class="board-sub">按过道排布 · 点灶牌开右侧抽屉</p>
   </div>
+  <form class="duty-filter" method="get" action="{% url 'home' %}">
+    <label for="duty-filter">值守过滤</label>
+    <select id="duty-filter" name="duty" class="field"
+            hx-get="{% url 'home' %}"
+            hx-trigger="change"
+            hx-target="#floor-grid"
+            hx-swap="outerHTML"
+            hx-push-url="true">
+      {% for value, label in duty_choices %}
+      <option value="{{ value }}" {% if value == duty %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <noscript><button type="submit" class="btn-ghost">应用</button></noscript>
+  </form>
   <div class="phase-legend">
     {% for key, label, count in phase_legend %}
     <span class="leg phase-{{ key }}"><i></i>{{ label }} {{ count }}</span>

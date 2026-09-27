@@ -1,0 +1,77 @@
+<div id="lot-results" class="lot-results">
+  <section class="recon-panel">
+    <h2 class="recon-title">
+      三路对照 · {% if origin %}产地「{{ origin }}」{% else %}全部产地{% endif %}
+    </h2>
+    <table class="recon-table">
+      <thead>
+        <tr><th>口径</th><th>复算数</th><th>渲染行</th><th>差</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>批张数 ↔ 卡片行</td>
+          <td class="mono">{{ recon.lot_total }}</td>
+          <td class="mono">{{ lots|length }}</td>
+          <td class="mono delta {% if recon.lot_delta == 0 %}ok{% else %}bad{% endif %}">{{ recon.lot_delta }}</td>
+        </tr>
+        <tr>
+          <td>未收灶值守 ↔ 值守条</td>
+          <td class="mono">{{ recon.run_total }}</td>
+          <td class="mono">{{ recon.runs|length }}</td>
+          <td class="mono delta {% if recon.run_delta == 0 %}ok{% else %}bad{% endif %}">{{ recon.run_delta }}</td>
+        </tr>
+        <tr>
+          <td>灶去重 ↔ 瓦片</td>
+          <td class="mono">{{ recon.hearth_total }}</td>
+          <td class="mono">{{ recon.hearths|length }}</td>
+          <td class="mono delta {% if recon.hearth_delta == 0 %}ok{% else %}bad{% endif %}">{{ recon.hearth_delta }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="recon-verdict {% if recon.balanced %}ok{% else %}bad{% endif %}">
+      {% if recon.balanced %}三路差均为 0，口径一致。{% else %}对照不平，请检查查询口径！{% endif %}
+    </p>
+
+    <div class="recon-cols">
+      <section>
+        <h3>值守条 · 未收灶</h3>
+        <ol class="run-strip">
+          {% for r in recon.runs %}
+          <li>
+            <span class="mono tag">{{ r.hearth.tag }}</span>
+            <span class="lot">{{ r.resinLot.lotCode }}</span>
+            <span class="mono when">{{ r.openedAt|date:"m-d H:i" }}</span>
+          </li>
+          {% empty %}
+          <li class="empty">无未收灶值守</li>
+          {% endfor %}
+        </ol>
+      </section>
+      <section>
+        <h3>瓦片去重 · 所属灶</h3>
+        <div class="hearth-chips">
+          {% for h in recon.hearths %}
+          <span class="chip mono">L{{ h.lane }}·{{ h.tag }}</span>
+          {% empty %}
+          <span class="empty">无灶台</span>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <ol class="lot-feed">
+    {% for lot in lots %}
+    <li class="lot-card">
+      <div class="lot-code mono">{{ lot.lotCode }}</div>
+      <div class="lot-place">{{ lot.originPlace }}</div>
+      <div class="lot-meta">
+        <span class="mono">{{ lot.arrivalKg }} kg</span>
+        <span>{{ lot.receivedAt|date:"Y-m-d H:i" }}</span>
+      </div>
+    </li>
+    {% empty %}
+    <li class="lot-card empty">该产地暂无来脂批</li>
+    {% endfor %}
+  </ol>
+</div>

@@ -1,7 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.db.models import Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -9,28 +8,27 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .forms import OpenCookRunForm, PhaseChangeForm, ResinLotForm, SoftPointProbeForm
-from .models import CookRun, FireHearth, ResinLot
+from .models import FireHearth
 from .services.floor_rules import change_hearth_phase
+from .services.queries import (
+    DUTY_FILTER_CHOICES,
+    board_hearths,
+    normalize_duty,
+    origin_choices,
+    origin_reconciliation,
+)
 
 
 def _wants_htmx(request):
     return request.headers.get("HX-Request") == "true"
 
 
-def _hearths_for_board():
-    return FireHearth.objects.prefetch_related(
-        Prefetch(
-            "runs",
-            queryset=CookRun.objects.filter(closedAt__isnull=True)
-            .select_related("resinLot")
-            .prefetch_related("probes"),
-            to_attr="open_runs_cache",
-        )
-    ).order_by("lane", "tag")
+def _duty_param(request):
+    return normalize_duty(request.GET.get("duty"))
 
 
-def _board_context():
-    hearths = list(_hearths_for_board())
+def _board_context(duty):
+    hearths = list(board_hearths(duty))
     lanes = {}
     for h in hearths:
         lanes.setdefault(h.lane, []).append(h)
@@ -42,6 +40,8 @@ def _board_context():
         "hearths": hearths,
         "lanes": sorted(lanes.items()),
         "phase_legend": phase_legend,
+        "duty": duty,
+        "duty_choices": DUTY_FILTER_CHOICES,
     }
 
 
@@ -62,7 +62,11 @@ def _drawer_context(hearth):
 
 @login_required
 def home(request):
-    ctx = _board_context()
+    duty = _duty_param(request)
+    if _wants_htmx(request):
+        # 值守过滤切换：只回网格片段，与整页共用 _board_context，同一口径
+        return render(request, "floor/_grid.html", _board_context(duty))
+    ctx = _board_context(duty)
     drawer_pk = request.GET.get("hearth")
     if drawer_pk:
         try:
@@ -78,7 +82,8 @@ def home(request):
 
 @login_required
 def floor_grid_partial(request):
-    html = render_to_string("floor/_grid.html", _board_context(), request=request)
+    duty = _duty_param(request)
+    html = render_to_string("floor/_grid.html", _board_context(duty), request=request)
     return HttpResponse(html)
 
 
@@ -191,6 +196,18 @@ def close_run(request, pk):
     return redirect(f"/?hearth={pk}")
 
 
+def _resin_feed_context(request):
+    """来脂批流的唯一取数入口：整页与 HTMX 片段都走这里。"""
+    origin = (request.GET.get("origin") or "").strip()
+    recon = origin_reconciliation(origin)
+    return {
+        "origin": origin,
+        "origin_options": origin_choices(),
+        "recon": recon,
+        "lots": recon.lots,
+    }
+
+
 @login_required
 @require_http_methods(["GET", "POST"])
 def resin_lot_feed(request):
@@ -207,5 +224,9 @@ def resin_lot_feed(request):
             }
         )
 
-    lots = ResinLot.objects.all()[:40]
-    return render(request, "resin/feed.html", {"lots": lots, "form": form})
+    ctx = _resin_feed_context(request)
+    ctx["form"] = form
+    if _wants_htmx(request):
+        # 产地切换：只回结果片段，与整页同一 _resin_feed_context，同一口径
+        return render(request, "resin/_feed_results.html", ctx)
+    return render(request, "resin/feed.html", ctx)
